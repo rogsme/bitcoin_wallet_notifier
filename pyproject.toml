@@ -1,0 +1,9 @@
+[project]
+name = "bitcoin_notifier"
+version = "0.1.0"
+description = "A notifier for bitcoin wallets"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "requests>=2.32.5",
+]
