@@ -1,5 +1,5 @@
 [project]
-name = "bitcoin_notifier"
+name = "bitcoin_wallet_notifier"
 version = "0.1.0"
 description = "A notifier for bitcoin wallets"
 readme = "README.md"
