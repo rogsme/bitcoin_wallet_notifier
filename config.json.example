@@ -1,0 +1,13 @@
+{
+    "addresses": [
+        {
+            "address": "bc1q8yrnatx40n9ts4mzqmkh2p65mys6mvs45us3kq",
+            "title": "My Cold Storage"
+        },
+        {
+            "address": "bc1q8cm2mxmdms776ne79pnk4ufsg9c53egq84799z",
+            "title": "Exchange Hot Wallet"
+        },
+    ],
+    "interval": 60
+}
