@@ -36,7 +36,7 @@ def get_balance(address: str) -> float:
     return satoshi_balance / 100_000_000.0
 
 
-def load_config(config_path: str) -> dict:
+def load_config(config_path: str) -> dict | None:
     """Load configuration from JSON file.
 
     Args:
@@ -91,7 +91,7 @@ def send_test_notification(apobj: apprise.Apprise) -> None:
     Args:
         apobj (apprise.Apprise): Configured Apprise object.
     """
-    if apobj.urls:
+    if apobj.urls():  # Call urls() to get the list of URLs
         logger.info("Sending test notification...")
         if apobj.notify(
             body="This is a test notification from your Bitcoin address monitor.",
@@ -158,7 +158,7 @@ def monitor_address(item: dict, last_balances: dict, apobj: apprise.Apprise) -> 
                 f"Balance increased to {balance:.8f} BTC"
             )
             logger.info(message)
-            if apobj.urls:
+            if apobj.urls():
                 apobj.notify(
                     body=message,
                     title="Bitcoin Funds Received!",
@@ -168,7 +168,7 @@ def monitor_address(item: dict, last_balances: dict, apobj: apprise.Apprise) -> 
                 f"⚠️ Balance decreased for {title} ({address})! Now {balance:.8f} BTC"
             )
             logger.warning(message)
-            if apobj.urls:
+            if apobj.urls():
                 apobj.notify(
                     body=message,
                     title="Bitcoin Balance Decreased!",
@@ -176,7 +176,7 @@ def monitor_address(item: dict, last_balances: dict, apobj: apprise.Apprise) -> 
         last_balances[address] = balance
     except Exception as e:
         logger.error(f"Error monitoring {title} - {address}: {e}")
-        if apobj.urls:
+        if apobj.urls():
             apobj.notify(
                 body=f"Error monitoring {title} ({address}): {e}",
                 title="Bitcoin Monitor Error",
