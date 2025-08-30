@@ -86,7 +86,13 @@ def setup_apprise(apprise_urls: list) -> apprise.Apprise:
 
 
 def _send_notification(apobj: apprise.Apprise, body: str, title: str) -> None:
-    """Helper function to send a notification if Apprise URLs are configured."""
+    """Sends a notification if Apprise URLs are configured.
+
+    Args:
+        apobj (apprise.Apprise): Configured Apprise object.
+        body (str): The body of the notification message.
+        title (str): The title of the notification.
+    """
     if apobj.urls() and not apobj.notify(body=body, title=title):
         logger.error(f"Failed to send notification: '{title}' - '{body}'")
 
