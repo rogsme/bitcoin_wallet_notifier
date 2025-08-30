@@ -14,5 +14,5 @@ repos:
         name: mypy
         entry: uv run mypy
         language: system
-        args: ["src"]
+        args: ["."]
         pass_filenames: false
