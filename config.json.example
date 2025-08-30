@@ -9,5 +9,9 @@
             "title": "Exchange Hot Wallet"
         },
     ],
-    "interval": 60
+    "interval": 60,
+    "apprise_urls": [
+        "ntfys://topic/",
+        "mailtos://user:password@server.com?smtp=smtp.server.com&from=noreply@server.com"
+    ]
 }
