@@ -1,3 +1,0 @@
-# Bitcoin wallet notifier
-
-TBD

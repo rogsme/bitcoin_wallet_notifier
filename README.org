@@ -1,0 +1,580 @@
+#+TITLE: Bitcoin Wallet Notifier
+#+AUTHOR: Roger Gonzalez
+#+DATE: 2025
+#+DESCRIPTION: A Python script to monitor Bitcoin addresses and send notifications when balances change
+#+KEYWORDS: bitcoin, wallet, monitor, notifications, cryptocurrency
+#+OPTIONS: toc:t num:t
+
+* Table of Contents :toc:
+:PROPERTIES:
+:ID:       2b57a09f-dbbf-4f42-8b08-2f9f04c8cec4
+:END:
+- [[#overview][Overview]]
+- [[#features][Features]]
+- [[#requirements][Requirements]]
+- [[#installation][Installation]]
+  - [[#using-uv-recommended][Using uv (Recommended)]]
+- [[#configuration][Configuration]]
+  - [[#configuration-file-format][Configuration File Format]]
+  - [[#notification-services][Notification Services]]
+- [[#usage][Usage]]
+  - [[#basic-usage][Basic Usage]]
+  - [[#testing-notifications][Testing Notifications]]
+  - [[#command-line-options][Command Line Options]]
+- [[#systemd-service-setup][Systemd Service Setup]]
+  - [[#creating-the-service-file][Creating the Service File]]
+  - [[#installing-and-starting-the-service][Installing and Starting the Service]]
+  - [[#managing-the-service][Managing the Service]]
+- [[#examples][Examples]]
+  - [[#example-configuration][Example Configuration]]
+  - [[#notification-examples][Notification Examples]]
+- [[#troubleshooting][Troubleshooting]]
+  - [[#common-issues][Common Issues]]
+  - [[#logging][Logging]]
+  - [[#api-rate-limits][API Rate Limits]]
+- [[#contributing][Contributing]]
+  - [[#development-setup][Development Setup]]
+- [[#donations][Donations]]
+- [[#license][License]]
+
+* Overview
+:PROPERTIES:
+:ID:       d53105e8-5bb0-44e5-9303-73e3922374a6
+:END:
+
+Bitcoin Wallet Notifier is a Python application that monitors Bitcoin addresses for balance changes and sends real-time notifications through various services. It's designed to help you keep track of incoming and outgoing transactions on your Bitcoin addresses without constantly checking blockchain explorers.
+
+The application uses the Blockstream API to fetch address balances and supports multiple notification methods through the Apprise library, including email, Slack, Discord, Telegram, and many others.
+
+* Features
+:PROPERTIES:
+:ID:       73b4c4c4-cfcb-4caf-9cfd-ae1f0bdbc975
+:END:
+
+- 🔍 *Real-time monitoring* of multiple Bitcoin addresses
+- 📱 *Multi-platform notifications* via Apprise (70+ services supported)
+- ⚡ *Balance change detection* for both incoming and outgoing funds
+- 🏷️ *Custom address labels* for easy identification
+- ⏱️ *Configurable monitoring intervals*
+- 🔗 *Direct blockchain explorer links* in notifications
+- 🧪 *Test notification functionality*
+- 📊 *Detailed logging* for monitoring and debugging
+- 🔄 *Automatic error handling* and recovery
+
+* Requirements
+:PROPERTIES:
+:ID:       ebcbd828-615f-4166-bc0f-17a6e76ffcbf
+:END:
+
+- Python 3.13 or higher
+- Internet connection for API access
+- Valid Bitcoin addresses to monitor
+
+* Installation
+:PROPERTIES:
+:ID:       7518b2b0-8e2e-4b47-820f-63c0cd8b362a
+:END:
+
+** Using uv (Recommended)
+:PROPERTIES:
+:ID:       ac0923d8-7de9-4d5f-b1b4-4da1d6feb1bc
+:END:
+
+[[https://github.com/astral-sh/uv][uv]] is a fast Python package installer and resolver. It's the recommended way to install and manage this project.
+
+1. Install uv if you haven't already:
+   #+BEGIN_SRC bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   #+END_SRC
+
+2. Clone the repository:
+   #+BEGIN_SRC bash
+   git clone https://git.rogs.me/rogs/bitcoin_wallet_notifier.git
+   cd bitcoin_wallet_notifier
+   #+END_SRC
+
+3. Install the project and dependencies:
+   #+BEGIN_SRC bash
+   uv sync
+   #+END_SRC
+
+4. Activate the virtual environment:
+   #+BEGIN_SRC bash
+   source .venv/bin/activate
+   #+END_SRC
+
+* Configuration
+:PROPERTIES:
+:ID:       07680c5a-2eb9-4ec8-b25c-1d3b750c33f6
+:END:
+
+** Configuration File Format
+:PROPERTIES:
+:ID:       be177ce3-999e-4675-9525-5a4a6339663a
+:END:
+
+Create a =config.json= file based on the provided =config.json.example=:
+
+#+BEGIN_SRC bash
+cp config.json.example config.json
+#+END_SRC
+
+The configuration file uses JSON format with the following structure:
+
+#+BEGIN_SRC json
+{
+    "addresses": [
+        {
+            "address": "bc1q8yrnatx40n9ts4mzqmkh2p65mys6mvs45us3kq",
+            "title": "My Cold Storage"
+        },
+        {
+            "address": "bc1q8cm2mxmdms776ne79pnk4ufsg9c53egq84799z",
+            "title": "Exchange Hot Wallet"
+        }
+    ],
+    "interval": 60,
+    "apprise_urls": [
+        "ntfys://topic/",
+        "mailtos://user:password@server.com?smtp=smtp.server.com&from=noreply@server.com"
+    ]
+}
+#+END_SRC
+
+*Configuration Parameters:*
+- =addresses=: Array of Bitcoin addresses to monitor
+  - =address=: Valid Bitcoin address (Legacy, SegWit, or Native SegWit)
+  - =title=: Human-readable label for the address
+- =interval=: Monitoring interval in seconds (default: 60)
+- =apprise_urls=: Array of Apprise notification URLs
+
+** Notification Services
+:PROPERTIES:
+:ID:       29136b10-a2ba-4d39-badd-9f2bf8eec0db
+:END:
+
+The application supports 70+ notification services through Apprise. Here are some popular examples:
+
+*** Email (SMTP)
+:PROPERTIES:
+:ID:       39cfee9b-a885-4c95-923d-c483dba2c006
+:END:
+#+BEGIN_SRC
+mailtos://user:password@smtp.server.com?from=sender@domain.com&to=recipient@domain.com
+#+END_SRC
+
+*** Telegram
+:PROPERTIES:
+:ID:       6b62c781-5472-4867-b75e-723cb932ced7
+:END:
+#+BEGIN_SRC
+tgram://bottoken/chatid/
+#+END_SRC
+
+*** Discord
+:PROPERTIES:
+:ID:       f238fb78-9228-4291-9542-3a55c364d8b8
+:END:
+#+BEGIN_SRC
+discord://webhook_id/webhook_token
+#+END_SRC
+
+*** Slack
+:PROPERTIES:
+:ID:       f7581484-8b13-4593-9282-ee1ef1a16e45
+:END:
+#+BEGIN_SRC
+slack://tokenA/tokenB/tokenC/channel
+#+END_SRC
+
+*** Ntfy
+:PROPERTIES:
+:ID:       84bd2c03-d4cc-4754-b18e-edb8a4abad45
+:END:
+#+BEGIN_SRC
+ntfys://topic@ntfy.server.com
+#+END_SRC
+
+*** Pushover
+:PROPERTIES:
+:ID:       bc2a882b-d1ae-4791-99b9-6547c8f93b85
+:END:
+#+BEGIN_SRC
+pover://user@token
+#+END_SRC
+
+For a complete list of supported services, visit the [[https://github.com/caronc/apprise][Apprise documentation]].
+
+* Usage
+:PROPERTIES:
+:ID:       dcc71f63-3a5a-4969-8246-6783c1fc3e10
+:END:
+
+** Basic Usage
+:PROPERTIES:
+:ID:       32782614-b22a-4c94-9ca3-c8a74e98082b
+:END:
+
+Run the monitor with the default configuration file:
+
+#+BEGIN_SRC bash
+python monitor.py
+#+END_SRC
+
+Or specify a custom configuration file:
+
+#+BEGIN_SRC bash
+python monitor.py --config /path/to/custom-config.json
+#+END_SRC
+
+** Testing Notifications
+:PROPERTIES:
+:ID:       2739d873-e293-4776-97f6-78423d10ec9b
+:END:
+
+Before running the monitor, test your notification setup:
+
+#+BEGIN_SRC bash
+python monitor.py --test-notifications
+#+END_SRC
+
+This will send a test notification to all configured services to ensure they're working correctly.
+
+** Command Line Options
+:PROPERTIES:
+:ID:       fff01d88-2ad8-41a5-b580-23722304fd74
+:END:
+
+#+BEGIN_SRC
+usage: monitor.py [-h] [--config CONFIG] [--test-notifications]
+
+Monitor Bitcoin addresses for incoming funds.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --config CONFIG       Path to the configuration file (default: config.json)
+  --test-notifications  Send a test notification using the configured Apprise URLs.
+#+END_SRC
+
+* Systemd Service Setup
+:PROPERTIES:
+:ID:       75ac9af1-eba9-4e81-a677-c1b6b5288a8c
+:END:
+
+To run the Bitcoin wallet notifier as a system service, follow these steps:
+
+** Creating the Service File
+:PROPERTIES:
+:ID:       bed5d0e4-eff5-4b94-85e0-dd3ae3be8f19
+:END:
+
+1. Create a systemd service file:
+   #+BEGIN_SRC bash
+   sudo nano /etc/systemd/system/bitcoin-monitor.service
+   #+END_SRC
+
+2. Add the following content (adjust paths as needed):
+   #+BEGIN_SRC ini
+   [Unit]
+   Description=Bitcoin Wallet Monitor
+   After=network.target
+   Wants=network.target
+
+   [Service]
+   Type=simple
+   User=bitcoin-monitor
+   Group=bitcoin-monitor
+   WorkingDirectory=/opt/bitcoin_wallet_notifier
+   Environment=PATH=/opt/bitcoin_wallet_notifier/.venv/bin
+   ExecStart=/opt/bitcoin_wallet_notifier/.venv/bin/python monitor.py --config /opt/bitcoin_wallet_notifier/config.json
+   Restart=always
+   RestartSec=10
+   StandardOutput=journal
+   StandardError=journal
+
+   [Install]
+   WantedBy=multi-user.target
+   #+END_SRC
+
+3. Create a dedicated user for the service:
+   #+BEGIN_SRC bash
+   sudo useradd --system --home /opt/bitcoin_wallet_notifier --shell /usr/sbin/nologin bitcoin-monitor
+   #+END_SRC
+
+4. Set up the application directory:
+   #+BEGIN_SRC bash
+   sudo mkdir -p /opt/bitcoin_wallet_notifier
+   sudo cp -r * /opt/bitcoin_wallet_notifier/
+   sudo chown -R bitcoin-monitor:bitcoin-monitor /opt/bitcoin_wallet_notifier
+   #+END_SRC
+
+5. Install dependencies as the service user:
+   #+BEGIN_SRC bash
+   sudo -u bitcoin-monitor bash -c "cd /opt/bitcoin_wallet_notifier && uv sync"
+   #+END_SRC
+
+** Installing and Starting the Service
+:PROPERTIES:
+:ID:       bb3f50a1-4715-4834-bd13-3c66702f4578
+:END:
+
+1. Reload systemd to recognize the new service:
+   #+BEGIN_SRC bash
+   sudo systemctl daemon-reload
+   #+END_SRC
+
+2. Enable the service to start automatically on boot:
+   #+BEGIN_SRC bash
+   sudo systemctl enable bitcoin-monitor.service
+   #+END_SRC
+
+3. Start the service:
+   #+BEGIN_SRC bash
+   sudo systemctl start bitcoin-monitor.service
+   #+END_SRC
+
+4. Check the service status:
+   #+BEGIN_SRC bash
+   sudo systemctl status bitcoin-monitor.service
+   #+END_SRC
+
+** Managing the Service
+:PROPERTIES:
+:ID:       47d21ac6-e3b5-4044-8ec0-0f26e7582687
+:END:
+
+*** View logs:
+:PROPERTIES:
+:ID:       3351a150-85ac-4bc1-a6d9-0ea06421560d
+:END:
+#+BEGIN_SRC bash
+sudo journalctl -u bitcoin-monitor.service -f
+#+END_SRC
+
+*** Stop the service:
+:PROPERTIES:
+:ID:       184f7ae4-3bd1-4e36-9f85-da7cc33984e9
+:END:
+#+BEGIN_SRC bash
+sudo systemctl stop bitcoin-monitor.service
+#+END_SRC
+
+*** Restart the service:
+:PROPERTIES:
+:ID:       310ce585-2687-4d1a-8086-9a9af035e0f2
+:END:
+#+BEGIN_SRC bash
+sudo systemctl restart bitcoin-monitor.service
+#+END_SRC
+
+*** Disable auto-start:
+:PROPERTIES:
+:ID:       106ed0d3-c85c-4b2b-9626-ef87915d01c0
+:END:
+#+BEGIN_SRC bash
+sudo systemctl disable bitcoin-monitor.service
+#+END_SRC
+
+* Examples
+:PROPERTIES:
+:ID:       bb05b132-e9d4-4623-8398-22e9d1a2042b
+:END:
+
+** Example Configuration
+:PROPERTIES:
+:ID:       e915c78d-7a7c-45f3-93dc-5cfb08345fa7
+:END:
+
+Here's a comprehensive configuration example:
+
+#+BEGIN_SRC json
+{
+    "addresses": [
+        {
+            "address": "bc1q8yrnatx40n9ts4mzqmkh2p65mys6mvs45us3kq",
+            "title": "Hardware Wallet - Cold Storage"
+        },
+        {
+            "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+            "title": "Genesis Block Address"
+        },
+        {
+            "address": "bc1q8cm2mxmdms776ne79pnk4ufsg9c53egq84799z",
+            "title": "Exchange Deposit Address"
+        }
+    ],
+    "interval": 120,
+    "apprise_urls": [
+        "tgram://123456789:ABCdefGHIjklMNOpqrsTUVwxyz/987654321/",
+        "mailtos://smtp.gmail.com:587/myemail@gmail.com?user=myemail@gmail.com&pass=myapppassword&from=myemail@gmail.com&to=recipient@example.com",
+        "discord://webhook_id/webhook_token",
+        "ntfys://bitcoin-alerts@ntfy.sh"
+    ]
+}
+#+END_SRC
+
+** Notification Examples
+:PROPERTIES:
+:ID:       fb5a8ceb-d530-4d56-8a35-3e8b3d839c27
+:END:
+
+When the monitor detects changes, you'll receive notifications like:
+
+*** Incoming Funds:
+:PROPERTIES:
+:ID:       b737aa9f-148f-486f-921c-67b8d96779f8
+:END:
+#+BEGIN_EXAMPLE
+🎉 New funds received for Hardware Wallet - Cold Storage (bc1q8yr...)!
+Balance increased to 0.05000000 BTC
+
+View on explorer: https://blockstream.info/address/bc1q8yrnatx40n9ts4mzqmkh2p65mys6mvs45us3kq
+#+END_EXAMPLE
+
+*** Outgoing Funds:
+:PROPERTIES:
+:ID:       1fd2efd2-61e2-4a0a-8f10-97bdbab609c3
+:END:
+#+BEGIN_EXAMPLE
+⚠️ Balance decreased for Exchange Deposit Address (bc1q8cm...)!
+Now 0.02500000 BTC
+
+View on explorer: https://blockstream.info/address/bc1q8cm2mxmdms776ne79pnk4ufsg9c53egq84799z
+#+END_EXAMPLE
+
+* Troubleshooting
+:PROPERTIES:
+:ID:       60481201-183e-4f42-829a-4f5da42437e4
+:END:
+
+** Common Issues
+:PROPERTIES:
+:ID:       b1a09cbc-c0e9-492f-9657-a9f39d2e6d46
+:END:
+
+*** Configuration file not found:
+:PROPERTIES:
+:ID:       143ae648-4405-4a33-9ef6-a3249681c052
+:END:
+- Ensure =config.json= exists in the working directory
+- Use the =--config= parameter to specify the correct path
+
+*** Network connectivity issues:
+:PROPERTIES:
+:ID:       f2997197-a13c-42cb-ab77-b7ddd1817fef
+:END:
+- Check internet connection
+- Verify that =blockstream.info= is accessible
+- Check firewall settings
+
+*** Notification failures:
+:PROPERTIES:
+:ID:       2387239a-eb2f-4ae1-afa1-7a8080566566
+:END:
+- Test notifications with =--test-notifications=
+- Verify Apprise URL formats
+- Check service-specific authentication requirements
+
+*** Permission errors (systemd):
+:PROPERTIES:
+:ID:       d883839b-c3a4-4076-b695-abf0b360a565
+:END:
+- Ensure the service user has read access to configuration files
+- Verify directory permissions are correct
+
+** Logging
+:PROPERTIES:
+:ID:       a99f1d18-d935-4a71-b737-4912bd07ddcc
+:END:
+
+The application provides detailed logging. To increase verbosity, you can modify the logging level in =monitor.py=:
+
+#+BEGIN_SRC python
+logging.basicConfig(
+    level=logging.DEBUG,  # Change from INFO to DEBUG
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
+#+END_SRC
+
+** API Rate Limits
+:PROPERTIES:
+:ID:       23728eb0-5f74-4e59-9fa7-9a83750fd1ba
+:END:
+
+The Blockstream API has rate limits. If you're monitoring many addresses or using a short interval:
+- Increase the =interval= value in your configuration
+- Consider implementing exponential backoff for failed requests
+
+* Contributing
+:PROPERTIES:
+:ID:       a23a5d90-5d9a-4b7a-8e4f-3912603285e9
+:END:
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch: =git checkout -b feature-name=
+3. Make your changes and add tests if applicable
+4. Ensure code follows the existing style (use =ruff= for linting)
+5. Run type checking with =mypy=
+6. Submit a pull request with a clear description
+
+** Development Setup
+:PROPERTIES:
+:ID:       20c787ab-ecc6-452b-a595-21dcad606d4f
+:END:
+
+Install development dependencies:
+#+BEGIN_SRC bash
+uv sync --group dev
+#+END_SRC
+
+Run linting and type checking:
+#+BEGIN_SRC bash
+ruff check .
+mypy monitor.py
+#+END_SRC
+
+* Donations
+:PROPERTIES:
+:ID:       fadea0be-893d-4eed-96a4-2d146b7e8074
+:END:
+
+If you find this project useful and would like to support its development, consider making a Bitcoin donation. Your support helps maintain and improve the project!
+
+#+BEGIN_CENTER
+*Bitcoin Address:*
+
+=bc1qfc66dlhgadtzy0sf5yn5ryu8c6kg24wqmgu56f=
+
+[[https://blockstream.info/address/[bc1qfc66dlhgadtzy0sf5yn5ryu8c6kg24wqmgu56f]][View on Blockchain Explorer]] 🔗
+#+END_CENTER
+
+#+BEGIN_QUOTE
+💡 *Fun fact:* You can use this very tool to monitor donations by adding the address above to your configuration file!
+#+END_QUOTE
+
+All donations are greatly appreciated and help cover development time, and future enhancements. Thank you for your support! 🙏
+
+* License
+:PROPERTIES:
+:ID:       a34ddbdc-e49a-4b5e-8a31-f643f4334496
+:END:
+
+This project is licensed under the GNU General Public License v3.0 - see the [[LICENSE][LICENSE]] file for details.
+
+The GPL v3 license ensures that:
+- You can use, modify, and distribute this software
+- Any derivative works must also be open source under GPL v3
+- You must provide the source code when distributing the software
+- You cannot impose additional restrictions on users' rights
+
+For more information about GPL v3, visit: https://www.gnu.org/licenses/gpl-3.0.html
+
+---
+
+*Happy monitoring! 🚀*
+
+#+BEGIN_CENTER
+/If you find this project useful, please consider starring it on GitHub or Gitlab!/
+#+END_CENTER
