@@ -37,7 +37,7 @@ class BitcoinAddressMonitor:
         """Load configuration from JSON file.
 
         Returns:
-            dict: Configuration dictionary, or None if loading failed.
+            dict | None: Configuration dictionary, or None if loading failed.
         """
         try:
             with open(self.config_path, "r") as f:
@@ -75,14 +75,27 @@ class BitcoinAddressMonitor:
 
         return apobj
 
-    def _send_notification(self, body: str, title: str) -> None:
+    def _send_notification(
+        self,
+        body: str,
+        title: str,
+        address: str | None = None,
+    ) -> None:
         """Sends a notification if Apprise URLs are configured.
 
         Args:
             body (str): The body of the notification message.
             title (str): The title of the notification.
+            address (str, None): The Bitcoin address related to the notification.
+                                 If provided, a link to a blockchain explorer will
+                                 be appended to the body.
         """
-        if self.apobj.urls() and not self.apobj.notify(body=body, title=title):
+        full_body = body
+        if address:
+            explorer_url = f"https://blockstream.info/address/{address}"
+            full_body += f"\n\nView on explorer: {explorer_url}"
+
+        if self.apobj.urls() and not self.apobj.notify(body=full_body, title=title):
             logger.error(f"Failed to send notification: '{title}' - '{body}'")
 
     def _initialize_balances(self) -> dict:
@@ -150,7 +163,7 @@ class BitcoinAddressMonitor:
         """Monitor a single address for balance changes.
 
         Args:
-            item (dict): Address configuration item.
+            item (dict): Address configuration item containing at least 'address' key.
         """
         address = item["address"]
         title = item.get("title", address)
@@ -167,19 +180,31 @@ class BitcoinAddressMonitor:
                     f"Balance increased to {balance:.8f} BTC"
                 )
                 logger.info(message)
-                self._send_notification(message, "Bitcoin Funds Received!")
+                self._send_notification(
+                    message,
+                    "Bitcoin Funds Received!",
+                    address=address,
+                )
             elif balance < self.last_balances[address]:
                 message = (
                     f"⚠️ Balance decreased for {title} ({address})! Now "
                     f"{balance:.8f} BTC"
                 )
                 logger.warning(message)
-                self._send_notification(message, "Bitcoin Balance Decreased!")
+                self._send_notification(
+                    message,
+                    "Bitcoin Balance Decreased!",
+                    address=address,
+                )
             self.last_balances[address] = balance
         except Exception as e:
             error_message = f"Error monitoring {title} ({address}): {e}"
             logger.error(error_message)
-            self._send_notification(error_message, "Bitcoin Monitor Error")
+            self._send_notification(
+                error_message,
+                "Bitcoin Monitor Error",
+                address=address,
+            )
 
     def monitor_addresses(self) -> None:
         """Monitor all configured addresses."""
