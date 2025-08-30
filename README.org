@@ -547,7 +547,7 @@ If you find this project useful and would like to support its development, consi
 
 =bc1qfc66dlhgadtzy0sf5yn5ryu8c6kg24wqmgu56f=
 
-[[https://blockstream.info/address/[bc1qfc66dlhgadtzy0sf5yn5ryu8c6kg24wqmgu56f]][View on Blockchain Explorer]] 🔗
+[[https://blockstream.info/address/bc1qfc66dlhgadtzy0sf5yn5ryu8c6kg24wqmgu56f][View on Blockchain Explorer]] 🔗
 #+END_CENTER
 
 #+BEGIN_QUOTE
