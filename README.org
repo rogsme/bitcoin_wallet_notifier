@@ -1,8 +1,5 @@
-#+TITLE: Bitcoin Wallet Notifier
-#+AUTHOR: Roger Gonzalez
-#+DATE: 2025
-#+DESCRIPTION: A Python script to monitor Bitcoin addresses and send notifications when balances change
-#+KEYWORDS: bitcoin, wallet, monitor, notifications, cryptocurrency
+#+title: Bitcoin Wallet Notifier
+#+PROPERTY: header-args
 
 * Table of Contents :toc:
 :PROPERTIES:
