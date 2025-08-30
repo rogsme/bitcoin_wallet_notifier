@@ -17,10 +17,14 @@ def get_balance(address: str) -> float:
     """Get the balance of a Bitcoin address in BTC.
 
     Args:
-        address: The Bitcoin address to check
+        address (str): The Bitcoin address to check.
 
     Returns:
-        The balance in BTC
+        float: The balance in BTC.
+
+    Raises:
+        requests.RequestException: If there's an error fetching the balance.
+        KeyError: If the response data structure is unexpected.
     """
     url = f"https://blockstream.info/api/address/{address}"
     resp = requests.get(url)
@@ -33,7 +37,14 @@ def get_balance(address: str) -> float:
 
 
 def load_config(config_path: str) -> dict:
-    """Load configuration from JSON file."""
+    """Load configuration from JSON file.
+
+    Args:
+        config_path (str): Path to the configuration file.
+
+    Returns:
+        dict: Configuration dictionary, or None if loading failed.
+    """
     try:
         with open(config_path, "r") as f:
             return json.load(f)
@@ -46,7 +57,14 @@ def load_config(config_path: str) -> dict:
 
 
 def setup_apprise(apprise_urls: list) -> apprise.Apprise:
-    """Set up Apprise notification system."""
+    """Set up Apprise notification system.
+
+    Args:
+        apprise_urls (list): List of Apprise notification URLs.
+
+    Returns:
+        apprise.Apprise: Configured Apprise object.
+    """
     apobj = apprise.Apprise()
     if not apprise_urls:
         logger.warning(
@@ -68,7 +86,11 @@ def setup_apprise(apprise_urls: list) -> apprise.Apprise:
 
 
 def send_test_notification(apobj: apprise.Apprise) -> None:
-    """Send a test notification."""
+    """Send a test notification.
+
+    Args:
+        apobj (apprise.Apprise): Configured Apprise object.
+    """
     if apobj.urls:
         logger.info("Sending test notification...")
         if apobj.notify(
@@ -86,7 +108,14 @@ def send_test_notification(apobj: apprise.Apprise) -> None:
 
 
 def validate_config(addresses_config: list) -> bool:
-    """Validate that addresses are configured."""
+    """Validate that addresses are configured.
+
+    Args:
+        addresses_config (list): List of address configurations.
+
+    Returns:
+        bool: True if valid, False otherwise.
+    """
     if not addresses_config:
         logger.error(
             "No addresses found in the configuration file. "
@@ -97,12 +126,25 @@ def validate_config(addresses_config: list) -> bool:
 
 
 def initialize_balances(addresses_config: list) -> dict:
-    """Initialize the balance tracking dictionary."""
+    """Initialize the balance tracking dictionary.
+
+    Args:
+        addresses_config (list): List of address configurations.
+
+    Returns:
+        dict: Dictionary with addresses as keys and None as values.
+    """
     return {item["address"]: None for item in addresses_config}
 
 
 def monitor_address(item: dict, last_balances: dict, apobj: apprise.Apprise) -> None:
-    """Monitor a single address for balance changes."""
+    """Monitor a single address for balance changes.
+
+    Args:
+        item (dict): Address configuration item.
+        last_balances (dict): Dictionary tracking previous balances.
+        apobj (apprise.Apprise): Configured Apprise object.
+    """
     address = item["address"]
     title = item.get("title", address)
 
@@ -146,13 +188,23 @@ def monitor_addresses(
     last_balances: dict,
     apobj: apprise.Apprise,
 ) -> None:
-    """Monitor all configured addresses."""
+    """Monitor all configured addresses.
+
+    Args:
+        addresses_config (list): List of address configurations.
+        last_balances (dict): Dictionary tracking previous balances.
+        apobj (apprise.Apprise): Configured Apprise object.
+    """
     for item in addresses_config:
         monitor_address(item, last_balances, apobj)
 
 
 def parse_arguments() -> argparse.Namespace:
-    """Parse command line arguments."""
+    """Parse command line arguments.
+
+    Returns:
+        argparse.Namespace: Parsed arguments.
+    """
     parser = argparse.ArgumentParser(
         description="Monitor Bitcoin addresses for incoming funds.",
     )
@@ -169,7 +221,7 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main():
+def main() -> None:
     """Main function to run the Bitcoin address monitor."""
     args = parse_arguments()
 
