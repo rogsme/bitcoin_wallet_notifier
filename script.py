@@ -14,6 +14,14 @@ logger = logging.getLogger(__name__)
 
 
 def get_balance(address: str) -> float:
+    """Get the balance of a Bitcoin address in BTC.
+
+    Args:
+        address: The Bitcoin address to check
+
+    Returns:
+        The balance in BTC
+    """
     url = f"https://blockstream.info/api/address/{address}"
     resp = requests.get(url)
     resp.raise_for_status()
@@ -52,7 +60,8 @@ def setup_apprise(apprise_urls: list) -> apprise.Apprise:
         except Exception as e:
             logger.error(f"Error adding Apprise URL '{url}': {e}")
             logger.error(
-                "Please check the URL format and ensure all necessary dependencies for the notification service are installed.",
+                "Please check the URL format and ensure all necessary "
+                "dependencies for the notification service are installed.",
             )
 
     return apobj
@@ -69,7 +78,8 @@ def send_test_notification(apobj: apprise.Apprise) -> None:
             logger.info("Test notification sent successfully.")
         else:
             logger.error(
-                "Failed to send test notification. Check your Apprise URLs and network connectivity.",
+                "Failed to send test notification. Check your Apprise URLs "
+                "and network connectivity.",
             )
     else:
         logger.warning("No Apprise URLs configured. Cannot send test notification.")
@@ -79,7 +89,8 @@ def validate_config(addresses_config: list) -> bool:
     """Validate that addresses are configured."""
     if not addresses_config:
         logger.error(
-            "No addresses found in the configuration file. Please add at least one address.",
+            "No addresses found in the configuration file. "
+            "Please add at least one address.",
         )
         return False
     return True
@@ -100,7 +111,10 @@ def monitor_address(item: dict, last_balances: dict, apobj: apprise.Apprise) -> 
         if last_balances[address] is None:
             logger.info(f"[{title} - {address}] Starting balance: {balance:.8f} BTC")
         elif balance > last_balances[address]:
-            message = f"🎉 New funds received for {title} ({address})! Balance increased to {balance:.8f} BTC"
+            message = (
+                f"🎉 New funds received for {title} ({address})! "
+                f"Balance increased to {balance:.8f} BTC"
+            )
             logger.info(message)
             if apobj.urls:
                 apobj.notify(
@@ -156,6 +170,7 @@ def parse_arguments() -> argparse.Namespace:
 
 
 def main():
+    """Main function to run the Bitcoin address monitor."""
     args = parse_arguments()
 
     config = load_config(args.config)
