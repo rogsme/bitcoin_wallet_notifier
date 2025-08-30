@@ -17,6 +17,7 @@ dev = [
     "python-lsp-ruff>=2.2.2",
     "python-lsp-server>=1.13.1",
     "ruff>=0.12.11",
+    "types-requests>=2.32.4.20250809",
 ]
 
 [tool.mypy]
@@ -31,8 +32,6 @@ warn_unreachable = true
 check_untyped_defs = true
 follow_imports = "silent"
 warn_no_return = true
-plugins = ["pydantic.mypy"]
-exclude = ["docs/.*", "lab/.*"]
 
 [tool.ruff]
 exclude = [
