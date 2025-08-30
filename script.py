@@ -85,6 +85,12 @@ def setup_apprise(apprise_urls: list) -> apprise.Apprise:
     return apobj
 
 
+def _send_notification(apobj: apprise.Apprise, body: str, title: str) -> None:
+    """Helper function to send a notification if Apprise URLs are configured."""
+    if apobj.urls() and not apobj.notify(body=body, title=title):
+        logger.error(f"Failed to send notification: '{title}' - '{body}'")
+
+
 def send_test_notification(apobj: apprise.Apprise) -> None:
     """Send a test notification.
 
@@ -143,7 +149,7 @@ def monitor_address(item: dict, last_balances: dict, apobj: apprise.Apprise) -> 
     Args:
         item (dict): Address configuration item.
         last_balances (dict): Dictionary tracking previous balances.
-        apobj (apprise.Apprise): Configured Apprise object.
+        apobj (appprise.Apprise): Configured Apprise object.
     """
     address = item["address"]
     title = item.get("title", address)
@@ -158,29 +164,18 @@ def monitor_address(item: dict, last_balances: dict, apobj: apprise.Apprise) -> 
                 f"Balance increased to {balance:.8f} BTC"
             )
             logger.info(message)
-            if apobj.urls():
-                apobj.notify(
-                    body=message,
-                    title="Bitcoin Funds Received!",
-                )
+            _send_notification(apobj, message, "Bitcoin Funds Received!")
         elif balance < last_balances[address]:
             message = (
                 f"⚠️ Balance decreased for {title} ({address})! Now {balance:.8f} BTC"
             )
             logger.warning(message)
-            if apobj.urls():
-                apobj.notify(
-                    body=message,
-                    title="Bitcoin Balance Decreased!",
-                )
+            _send_notification(apobj, message, "Bitcoin Balance Decreased!")
         last_balances[address] = balance
     except Exception as e:
-        logger.error(f"Error monitoring {title} - {address}: {e}")
-        if apobj.urls():
-            apobj.notify(
-                body=f"Error monitoring {title} ({address}): {e}",
-                title="Bitcoin Monitor Error",
-            )
+        error_message = f"Error monitoring {title} ({address}): {e}"
+        logger.error(error_message)
+        _send_notification(apobj, error_message, "Bitcoin Monitor Error")
 
 
 def monitor_addresses(
