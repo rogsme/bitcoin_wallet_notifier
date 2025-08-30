@@ -1,9 +1,16 @@
 import argparse
 import json
+import logging
 import time
 
 import apprise
 import requests
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 
 def get_balance(address: str) -> float:
@@ -23,10 +30,10 @@ def load_config(config_path: str) -> dict:
         with open(config_path, "r") as f:
             return json.load(f)
     except FileNotFoundError:
-        print(f"Error: Configuration file '{config_path}' not found.")
+        logger.error(f"Configuration file '{config_path}' not found.")
         return None
     except json.JSONDecodeError as e:
-        print(f"Error parsing configuration file: {e}")
+        logger.error(f"Error parsing configuration file: {e}")
         return None
 
 
@@ -34,8 +41,8 @@ def setup_apprise(apprise_urls: list) -> apprise.Apprise:
     """Set up Apprise notification system."""
     apobj = apprise.Apprise()
     if not apprise_urls:
-        print(
-            "Warning: No Apprise notification URLs configured. Notifications will not be sent.",
+        logger.warning(
+            "No Apprise notification URLs configured. Notifications will not be sent.",
         )
         return apobj
 
@@ -43,8 +50,8 @@ def setup_apprise(apprise_urls: list) -> apprise.Apprise:
         try:
             apobj.add(url)
         except Exception as e:
-            print(f"Error adding Apprise URL '{url}': {e}")
-            print(
+            logger.error(f"Error adding Apprise URL '{url}': {e}")
+            logger.error(
                 "Please check the URL format and ensure all necessary dependencies for the notification service are installed.",
             )
 
@@ -54,24 +61,24 @@ def setup_apprise(apprise_urls: list) -> apprise.Apprise:
 def send_test_notification(apobj: apprise.Apprise) -> None:
     """Send a test notification."""
     if apobj.urls:
-        print("Sending test notification...")
+        logger.info("Sending test notification...")
         if apobj.notify(
             body="This is a test notification from your Bitcoin address monitor.",
             title="Bitcoin Monitor Test Notification",
         ):
-            print("Test notification sent successfully.")
+            logger.info("Test notification sent successfully.")
         else:
-            print(
+            logger.error(
                 "Failed to send test notification. Check your Apprise URLs and network connectivity.",
             )
     else:
-        print("No Apprise URLs configured. Cannot send test notification.")
+        logger.warning("No Apprise URLs configured. Cannot send test notification.")
 
 
 def validate_config(addresses_config: list) -> bool:
     """Validate that addresses are configured."""
     if not addresses_config:
-        print(
+        logger.error(
             "No addresses found in the configuration file. Please add at least one address.",
         )
         return False
@@ -91,10 +98,10 @@ def monitor_address(item: dict, last_balances: dict, apobj: apprise.Apprise) -> 
     try:
         balance = get_balance(address)
         if last_balances[address] is None:
-            print(f"[{title} - {address}] Starting balance: {balance:.8f} BTC")
+            logger.info(f"[{title} - {address}] Starting balance: {balance:.8f} BTC")
         elif balance > last_balances[address]:
             message = f"🎉 New funds received for {title} ({address})! Balance increased to {balance:.8f} BTC"
-            print(message)
+            logger.info(message)
             if apobj.urls:
                 apobj.notify(
                     body=message,
@@ -104,7 +111,7 @@ def monitor_address(item: dict, last_balances: dict, apobj: apprise.Apprise) -> 
             message = (
                 f"⚠️ Balance decreased for {title} ({address})! Now {balance:.8f} BTC"
             )
-            print(message)
+            logger.warning(message)
             if apobj.urls:
                 apobj.notify(
                     body=message,
@@ -112,7 +119,7 @@ def monitor_address(item: dict, last_balances: dict, apobj: apprise.Apprise) -> 
                 )
         last_balances[address] = balance
     except Exception as e:
-        print(f"Error monitoring {title} - {address}: {e}")
+        logger.error(f"Error monitoring {title} - {address}: {e}")
         if apobj.urls:
             apobj.notify(
                 body=f"Error monitoring {title} ({address}): {e}",
