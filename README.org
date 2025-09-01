@@ -134,6 +134,7 @@ The configuration file uses JSON format with the following structure:
         }
     ],
     "interval": 60,
+    "notify_errors": false,
     "apprise_urls": [
         "ntfys://topic/",
         "mailtos://user:password@server.com?smtp=smtp.server.com&from=noreply@server.com"
@@ -146,6 +147,7 @@ The configuration file uses JSON format with the following structure:
   - =address=: Valid Bitcoin address (Legacy, SegWit, or Native SegWit)
   - =title=: Human-readable label for the address
 - =interval=: Monitoring interval in seconds (default: 60)
+- =notify_errors=: Enable/disable error notifications (default: false)
 - =apprise_urls=: Array of Apprise notification URLs
 
 ** Notification Services
@@ -252,8 +254,10 @@ Monitor Bitcoin addresses for incoming funds.
 
 optional arguments:
   -h, --help            show this help message and exit
-  --config CONFIG       Path to the configuration file (default: config.json)
-  --test-notifications  Send a test notification using the configured Apprise URLs.
+  -c CONFIG, --config CONFIG
+                        Path to the configuration file (default: config.json)
+  -t, --test-notifications
+                        Send a test notification using the configured Apprise URLs.
 #+END_SRC
 
 * Systemd Service Setup
@@ -404,6 +408,7 @@ Here's a comprehensive configuration example:
         }
     ],
     "interval": 120,
+    "notify_errors": false,
     "apprise_urls": [
         "tgram://123456789:ABCdefGHIjklMNOpqrsTUVwxyz/987654321/",
         "mailtos://smtp.gmail.com:587/myemail@gmail.com?user=myemail@gmail.com&pass=myapppassword&from=myemail@gmail.com&to=recipient@example.com",

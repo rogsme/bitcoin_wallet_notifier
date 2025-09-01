@@ -10,6 +10,7 @@
         },
     ],
     "interval": 60,
+    "notify_errors": false,
     "apprise_urls": [
         "ntfys://topic/",
         "mailtos://user:password@server.com?smtp=smtp.server.com&from=noreply@server.com"

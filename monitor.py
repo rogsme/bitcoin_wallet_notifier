@@ -29,6 +29,7 @@ class BitcoinAddressMonitor:
 
         self.addresses_config = self.config.get("addresses", [])
         self.interval = self.config.get("interval", 60)
+        self.notify_errors = self.config.get("notify_errors", False)
         self.apprise_urls = self.config.get("apprise_urls", [])
         self.apobj = self._setup_apprise()
         self.last_balances = self._initialize_balances()
@@ -200,11 +201,12 @@ class BitcoinAddressMonitor:
         except Exception as e:
             error_message = f"Error monitoring {title} ({address}): {e}"
             logger.error(error_message)
-            self._send_notification(
-                error_message,
-                "Bitcoin Monitor Error",
-                address=address,
-            )
+            if self.notify_errors:
+                self._send_notification(
+                    error_message,
+                    "Bitcoin Monitor Error",
+                    address=address,
+                )
 
     def monitor_addresses(self) -> None:
         """Monitor all configured addresses."""
