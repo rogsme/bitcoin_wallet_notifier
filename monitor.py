@@ -34,6 +34,13 @@ class BitcoinAddressMonitor:
         self.apobj = self._setup_apprise()
         self.last_balances = self._initialize_balances()
 
+        # Log configuration details
+        logger.info(f"Config location: {self.config_path}")
+        logger.info(f"Number of addresses to monitor: {len(self.addresses_config)}")
+        logger.info(f"Monitoring interval: {self.interval} seconds")
+        logger.info(f"Error notifications enabled: {self.notify_errors}")
+        logger.info(f"Number of Apprise URLs configured: {len(self.apprise_urls)}")
+
     def _load_config(self) -> dict | None:
         """Load configuration from JSON file.
 
