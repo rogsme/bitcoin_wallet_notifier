@@ -547,13 +547,11 @@ mypy monitor.py
 
 If you find this project useful and would like to support its development, consider making a Bitcoin donation. Your support helps maintain and improve the project!
 
-#+BEGIN_CENTER
 *Bitcoin Address:*
 
 =bc1qfc66dlhgadtzy0sf5yn5ryu8c6kg24wqmgu56f=
 
 [[https://blockstream.info/address/bc1qfc66dlhgadtzy0sf5yn5ryu8c6kg24wqmgu56f][View on Blockchain Explorer]] 🔗
-#+END_CENTER
 
 #+BEGIN_QUOTE
 💡 *Fun fact:* You can use this very tool to monitor donations by adding the address above to your configuration file!
@@ -580,6 +578,4 @@ For more information about GPL v3, visit: https://www.gnu.org/licenses/gpl-3.0.h
 
 *Happy monitoring! 🚀*
 
-#+BEGIN_CENTER
 /If you find this project useful, please consider starring it on GitHub or Gitlab!/
-#+END_CENTER
