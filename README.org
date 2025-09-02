@@ -5,6 +5,8 @@
 #+KEYWORDS: bitcoin, wallet, monitor, notifications, cryptocurrency
 #+OPTIONS: toc:nil
 
+[[https://gitlab.com/-/project/74029090/uploads/c10f4efa14eaf2ad461e69c0c45c08a3/image.png]]
+
 * Table of Contents :toc:
 :PROPERTIES:
 :ID:       2b57a09f-dbbf-4f42-8b08-2f9f04c8cec4
@@ -41,8 +43,6 @@
 :PROPERTIES:
 :ID:       d53105e8-5bb0-44e5-9303-73e3922374a6
 :END:
-
-[[https://gitlab.com/-/project/74029090/uploads/c10f4efa14eaf2ad461e69c0c45c08a3/image.png]]
 
 Bitcoin Wallet Notifier is a Python application that monitors Bitcoin addresses for balance changes and sends real-time notifications through various services. It's designed to help you keep track of incoming and outgoing transactions on your Bitcoin addresses without constantly checking blockchain explorers.
 
