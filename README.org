@@ -42,6 +42,8 @@
 :ID:       d53105e8-5bb0-44e5-9303-73e3922374a6
 :END:
 
+[[https://github.com/user-attachments/assets/44e1bcd9-a9ef-4ec3-8975-b3e9ac5d34fb]]
+
 Bitcoin Wallet Notifier is a Python application that monitors Bitcoin addresses for balance changes and sends real-time notifications through various services. It's designed to help you keep track of incoming and outgoing transactions on your Bitcoin addresses without constantly checking blockchain explorers.
 
 The application uses the Blockstream API to fetch address balances and supports multiple notification methods through the Apprise library, including email, Slack, Discord, Telegram, and many others.
